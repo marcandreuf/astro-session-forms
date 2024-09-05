@@ -1,0 +1,42 @@
+---
+
+
+export const prerender = false;
+
+const {astro_session_session: session} = Astro.locals;
+
+if (Astro.request.method === "POST") {
+  try {
+    const data = await Astro.request.formData();
+    const csrfToken = data.get("csrfToken");
+    const name = data.get("username");
+    const email = data.get("email");
+    const password = data.get("password");
+    console.log('Form data: ', csrfToken, name, email, password);
+    // Do something with the data
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error(error.message);
+    }
+  }
+}
+
+---
+
+<h2>Astro form with browser client side validation</h2>
+<form method="POST">
+  <input type="text" name="csrfToken" value={session.csrfToken}  />
+  <label>
+    Username:
+    <input type="text" name="username" required />
+  </label>
+  <label>
+    Email:
+    <input type="email" name="email" required />
+  </label>
+  <label>
+    Password:
+    <input type="password" name="password" required minlength="6" />
+  </label>
+  <button>Submit</button>
+</form>

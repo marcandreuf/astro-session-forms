@@ -1,0 +1,3 @@
+# Learning astro and session data managment for dynamic components.
+
+WIP...
