@@ -47,6 +47,7 @@ function loadSettings(userSettings: any) {
   };
 }
 
+//TODO: Refactor and clean up this middleware.
 export const onRequest = defineMiddleware(
   async ({ locals, request, cookies, url, rewrite }: APIContext, next: MiddlewareNext) => {
     const tokens = new Tokens();
@@ -121,17 +122,8 @@ export const onRequest = defineMiddleware(
           settings.session.cookieName,
           settings.session.cookieOptions
         );
-        // Reject the request
-        const errResponse = new Response(
-          `Invalid session cookie: ${error?.message}`,
-          { status: 500 }
-        );
-        if (!(errResponse instanceof Response)) {
-          throw new Error(
-            "ThrowOverrideResponse.response must be a Response instance"
-          );
-        }
-        return errResponse;
+        // Reject the request        
+        return newErrorResponse(error);
       }
     } else {
 
@@ -195,3 +187,15 @@ export const onRequest = defineMiddleware(
     return next();
   }
 );
+function newErrorResponse(error: any) {
+  const errResponse = new Response(`Invalid session cookie: ${error?.message}`,
+    { status: 500 }
+  );
+  if (!(errResponse instanceof Response)) {
+    throw new Error(
+      "ThrowOverrideResponse.response must be a Response instance"
+    );
+  }
+  return errResponse;
+}
+
