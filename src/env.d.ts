@@ -2,8 +2,10 @@
 
 declare namespace App {
     interface Locals {
-        astro_session_session: {
-            csrfToken: string
+        title: string,
+        astroSession: {
+            csrfToken: string,
+            csrfSecret: string,
         },
     }
 }

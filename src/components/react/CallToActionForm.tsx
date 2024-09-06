@@ -1,3 +1,4 @@
+import { set } from 'astro:schema';
 import React, { useEffect, type FormEvent } from 'react';
 import { useForm, type SubmitHandler } from "react-hook-form";
 
@@ -49,8 +50,8 @@ export default function CtaForm({ csrfToken }: { csrfToken: string }) {
         <div>
             <h2>React form To Astro Page</h2>
             {/* <form onSubmit={handleSubmit(submitToAstroPage)}> */}
-            <form onSubmit={handleSubmit(submitToApi)}>
-                <input {...register("csrfToken")} value={formCsrfToken} readOnly />
+            <form onSubmit={handleSubmit(submitToApi)} method='POST'>
+                <input {...register("csrfToken")} value={formCsrfToken} />
                 <label>
                     Username:
                     <input type="text" {...register('username')} required />

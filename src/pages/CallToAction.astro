@@ -1,19 +1,33 @@
 ---
-
+import Tokens from "csrf";
 
 export const prerender = false;
 
-const {astro_session_session: session} = Astro.locals;
+const {astroSession: session} = Astro.locals;
+
+const validateForm = (formCsrfToken:string) => {
+  const validateToken = formCsrfToken
+  const validationSecret = session.csrfSecret;
+  const tokens = new Tokens();
+  const requestValid = tokens.verify(validationSecret, validateToken);
+  if (requestValid) {
+    console.log('Form CSRF data is valid');
+  } else {
+    console.log('Form CSRF data is invalid');
+  }
+}
 
 if (Astro.request.method === "POST") {
   try {
     const data = await Astro.request.formData();
-    const csrfToken = data.get("csrfToken");
-    const name = data.get("username");
-    const email = data.get("email");
-    const password = data.get("password");
+    const csrfToken = data.get('csrfToken')?.toString() || ''; 
+    const name = data.get("username")?.toString() || '';
+    const email = data.get("email")?.toString() || '';
+    const password = data.get("password")?.toString() || '';
     console.log('Form data: ', csrfToken, name, email, password);
-    // Do something with the data
+
+    validateForm(csrfToken);
+    
   } catch (error) {
     if (error instanceof Error) {
       console.error(error.message);

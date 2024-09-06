@@ -4,7 +4,8 @@ import CallToActionForm  from '../components/react/CallToActionForm';
 import CallToAction from './CallToAction.astro';
 
 export const prerender = false;
-const {astro_session_session: session} = Astro.locals;
+
+const { astroSession: session  } = Astro.locals;
 ---
 
 <Layout title="Testing Secure Forms">
