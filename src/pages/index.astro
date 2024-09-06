@@ -1,6 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import CallToActionForm  from '../components/react/CallToActionForm';
+import CtaForm  from '../components/react/CallToActionForm';
+import CtaFormAPI from '../components/react/CallToActionFormAPI';
 import CallToAction from './CallToAction.astro';
 
 export const prerender = false;
@@ -41,8 +42,8 @@ const { astroSession: session  } = Astro.locals;
 
 		<h1>Testing Safe <span class="text-gradient">Forms</span></h1>
 
-		<CallToActionForm csrfToken={session.csrfToken} client:load />
-		
+		<CtaForm csrfToken={session.csrfToken} client:load />
+		<CtaFormAPI csrfToken={session.csrfToken} client:load />		
 		<CallToAction/>
 		
 	</main>

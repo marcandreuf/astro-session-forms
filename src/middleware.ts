@@ -5,6 +5,7 @@ import { promisify } from "node:util";
 import jwt from "jsonwebtoken";
 import { v4 as uuid } from "uuid";
 
+
 export type SessionSettings = {
   csrf: {
     token: string;
@@ -47,7 +48,7 @@ function loadSettings(userSettings: any) {
 }
 
 export const onRequest = defineMiddleware(
-  async ({ locals, request, cookies }: APIContext, next: MiddlewareNext) => {
+  async ({ locals, request, cookies, url, rewrite }: APIContext, next: MiddlewareNext) => {
     const tokens = new Tokens();
     const createSecret = () => promisify(tokens.secret.bind(tokens))();
 
@@ -70,7 +71,7 @@ export const onRequest = defineMiddleware(
         console.log("Session data: ", sessionData);
 
         // If request has formData, check if the csrf token is valid
-        if (request.method === "POST") {
+        //if (request.method === "POST") {
           let formData = null;
           try {
             formData = await request.clone().formData();
@@ -101,7 +102,7 @@ export const onRequest = defineMiddleware(
               }
             }
           }
-        }
+        //}
 
         // Add csrf SECRET to locals. This way the form component can check if the csrf of the form is valid.
         const csrfToken = tokens.create(sessionData.csrfSecret);
@@ -112,6 +113,7 @@ export const onRequest = defineMiddleware(
           csrfSecret: sessionData.csrfSecret,
         };
       } catch (error: any) {
+
         // Else, JWT is invalid
         console.log("Error verifying JWT: ", error);
 
@@ -132,46 +134,57 @@ export const onRequest = defineMiddleware(
         return errResponse;
       }
     } else {
-      console.log("Session cookie does not exists");
-      // Create csrf token from csrf lib
-      const csrfSecret = await createSecret();
-      console.log("CSRF secret: ", csrfSecret);
 
-      const csrfToken = tokens.create(csrfSecret);
-      console.log("CSRF token: ", csrfToken);
+      if(url.pathname === "/") {
+        console.log("Session cookie does not exists");
+        // Create csrf token from csrf lib
+        const csrfSecret = await createSecret();
+        console.log("CSRF secret: ", csrfSecret);
+  
+        const csrfToken = tokens.create(csrfSecret);
+        console.log("CSRF token: ", csrfToken);
+  
+        // // Add csrf token to locals, so that the form components can render with the csrf token.
+        locals.astroSession = {
+          csrfToken: csrfToken,
+          csrfSecret: csrfSecret,
+        };
+  
+        // Create a signed JWT with the csrf secret and expiration date.
+        // Add csrfSecret to the JWT, so that the secret can be recovered in the next request.
+        const jwtToken = jwt.sign(
+          { csrfSecret: csrfSecret },
+          settings.signSecret,
+          { expiresIn: settings.session.cookieOptions.maxAge }
+        );
+  
+        // Store cookies to the response
+        cookies.set(
+          settings.session.cookieName,
+          jwtToken,
+          settings.session.cookieOptions
+        );
+  
+        // const stringifyCookie = cookie.serialize(
+        //   settings.session.cookieName,
+        //   jwtToken,
+        //   settings.session.cookieOptions
+        // );
+        // const response = await next();
+        // if (stringifyCookie) {
+        //   console.log('Set response serialised session cookie.')
+        //   response.headers.set("Set-Cookie", stringifyCookie);
+        // }
+        // return response;
+        
+      }else{        
+        const errResponse = new Response(
+          `Invalid session`,
+          { status: 500 }
+        );
+        return errResponse;
+      }
 
-      // // Add csrf token to locals, so that the form components can render with the csrf token.
-      locals.astroSession = {
-        csrfToken: csrfToken,
-        csrfSecret: csrfSecret,
-      };
-
-      // Create a signed JWT with the csrf secret and expiration date.
-      // Add csrfSecret to the JWT, so that the secret can be recovered in the next request.
-      const jwtToken = jwt.sign(
-        { csrfSecret: csrfSecret },
-        settings.signSecret,
-        { expiresIn: settings.session.cookieOptions.maxAge }
-      );
-
-      // Store cookies to the response
-      cookies.set(
-        settings.session.cookieName,
-        jwtToken,
-        settings.session.cookieOptions
-      );
-
-      // const stringifyCookie = cookie.serialize(
-      //   settings.session.cookieName,
-      //   jwtToken,
-      //   settings.session.cookieOptions
-      // );
-      // const response = await next();
-      // if (stringifyCookie) {
-      //   console.log('Set response serialised session cookie.')
-      //   response.headers.set("Set-Cookie", stringifyCookie);
-      // }
-      // return response;
     }
 
     // const token = Math.random().toString(36).substring(2, 15);
